@@ -1,5 +1,14 @@
 from json import dump
 
+def deindent(splitted_source):
+  n_space = 0
+  for x in splitted_source[0]:
+    if x == ' ':
+      n_space += 1
+    else:
+      break
+  return map(lambda x: x[n_space:], splitted_source)
+
 class Notebook(dict):
   def __init__(self, *args, **kwargs):
     super(Notebook, self).__init__(*args, **kwargs)
@@ -39,6 +48,7 @@ class Notebook(dict):
        "metadata": {}
     }
     if type == 'code':
+        cell['source'] = deindent(splitted)
         cell['execution_count'] = None
         cell['outputs'] = []
     self['cells'].append(cell)
