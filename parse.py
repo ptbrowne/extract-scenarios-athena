@@ -21,9 +21,10 @@ def parse_scenario(line, headers, subheaders, chinu_ref):
     """Transformer une ligne en un scenario"""
     chinu = line[CHINU]
     rfactor = line[RFACTOR]
-    chinu_delta = (chinu - chinu_ref) / chinu 
-    scen = [Ref(headers[i], cell) for i, cell in enumerate(line) if cell and subheaders[i] == 'weight']
-    return (scen, rfactor, chinu, chinu_delta)
+    chinu_delta = (chinu - chinu_ref) / chinu * 100
+    refs = [Ref(headers[i], cell) for i, cell in enumerate(line) if cell and subheaders[i] == 'weight']
+    refs = sorted(refs, key=lambda ref: -ref.weight)
+    return (refs, rfactor, chinu, chinu_delta)
 
 def parse_scenarios_from_file(filename):
     """Extraire d'un CSV les scenarios"""
