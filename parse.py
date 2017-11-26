@@ -36,13 +36,14 @@ def parse_scenarios_from_file(filename):
     results = map(parse_row, results)
     scenarios = []
     for i, line in enumerate(results[:10]):
-        if i < 2:
+        if i < 1:
             continue
         line = map(lambda x: float(x) if x else 0, line)
         results[i] = line
         chinu = line[CHINU]
         chinu_ref = results[1][CHINU]
         s = parse_scenario(line, headers, subheaders, chinu_ref)
-        scenario = Scenario(*([i - 1] + list(s)))
+        scenario_id = i - 1
+        scenario = Scenario(*([scenario_id] + list(s)))
         scenarios.append(scenario)
     return scenarios
