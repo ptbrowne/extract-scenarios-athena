@@ -9,7 +9,7 @@ from parse import parse_scenarios_from_file
 def float_equal(f1, f2):
     return abs(f2 - f1) < 0.00001
 
-if __name__ == '__main__':
+def test_parse():
     test_file = osp.join(test_dir, 'Zn_Clos_sub_SSRL_LCF_2refs.csv')
     scenarios = parse_scenarios_from_file(test_file)
     
