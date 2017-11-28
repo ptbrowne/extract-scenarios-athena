@@ -77,11 +77,16 @@ if __name__ == '__main__':
 
     n.add_code_cell(render("""
         display(HTML(\"\"\"
-        <div class='noprint' style="z-index: 1000; position: fixed; top: 4rem; left: 1rem; background: white; box-shadow: 2px 2px 4px rgba(0,0,0,0.5)">
+        <div class='noprint refSelect' style="z-index: 1000; position: fixed; top: 4rem; left: 1rem; background: white; box-shadow: 2px 2px 4px rgba(0,0,0,0.5)">
             {% for ref_file in ref_files %}
-                <a href='#{{ ref_file }}'>{{ ref_file }}</a><br/>
+                <a href='#{{ ref_file }}'>{{ osp.basename(ref_file) }}</a><br/>
             {% endfor %}
-        </div>\"\"\"))""", ref_files=ref_files))
+        </div>
+        <script type="text/javascript">
+            var node = document.querySelector('.refSelect');
+            node.parentNode.removeChild(node);
+            document.body.appendChild(node)
+        </script>\"\"\"))""", ref_files=ref_files, osp=osp))
     for ref_file in ref_files:
         scenarios = parse_scenarios_from_file(ref_file, limit=args.limit_scenarios)
         scenarios_with_images = filter(has_images, scenarios)
