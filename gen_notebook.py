@@ -107,10 +107,11 @@ if __name__ == '__main__':
         print 'Number of references: {0}'.format(n_refs)
 
         # Summary
+        title = osp.basename(ref_file).split('_')[-1].split('.')[0]
         n.add_code_cell(render("""
             scenarios = parse_scenarios_from_file('{{ ref_file }}')
             display(HTML(\"\"\"
-                <h2 id="{{ ref_file }}">{{ osp.basename(ref_file).split('_')[-1].split('.')[0] }}</h2>
+                <h2 id="{{ ref_file }}">{{ title }}</h2>
                 <table id="">
                     <tr>
                         <th>
@@ -144,7 +145,7 @@ if __name__ == '__main__':
                     {% endfor %}
                 </table>
                 \"\"\"))
-            """, scenarios=scenarios, ref_file=ref_file, n_refs=n_refs, osp=osp))
+            """, scenarios=scenarios, ref_file=ref_file, n_refs=n_refs, title=title))
 
         # Each scenario
         for i, scenario in enumerate(scenarios_with_images):
