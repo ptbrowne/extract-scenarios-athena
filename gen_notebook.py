@@ -106,10 +106,10 @@ if __name__ == '__main__':
                         </th>
                         {% for n in range(n_refs) %}
                             <th>
-                                Ref{n}
+                                Ref{{n}}
                             </th>
                             <th>
-                                Ref{n}
+                                Ref{{n}}
                             </th>
                         {% endfor %}
                         <th>
@@ -151,7 +151,7 @@ if __name__ == '__main__':
         """.format(i))
             n.add_markdown_cell("Notes : ")
 
-        notebook_filename = '{0}.ipynb'.format(osp.basename(data_dir[:-1]))
-        n.write(notebook_filename)
-        print '{0} created ! ✨'.format(notebook_filename)
+    notebook_filename = '{0}.ipynb'.format(osp.basename(data_dir[:-1]))
+    n.write(notebook_filename)
+    print '{0} created ! ✨'.format(notebook_filename)
 
