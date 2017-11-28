@@ -75,6 +75,7 @@ if __name__ == '__main__':
     add_preambule()
     add_toggle_code()
 
+    # Reference selector
     n.add_code_cell(render("""
         display(HTML(\"\"\"
         <div class='noprint refSelect' style="z-index: 1000; padding: 0.5rem; position: fixed; top: 4rem; left: 1rem; background: white; box-shadow: 2px 2px 4px rgba(0,0,0,0.5)">
@@ -87,6 +88,13 @@ if __name__ == '__main__':
             node.parentNode.removeChild(node);
             document.body.appendChild(node)
         </script>\"\"\"))""", ref_files=ref_files, osp=osp))
+
+    # Main title
+    notebook_filename = '{0}.ipynb'.format(osp.basename(data_dir[:-1]))
+    n.add_code_cell(render("""
+        display(HTML("<h1>{{ notebook_filename }}</h1>"))
+    """, notebook_filename=notebook_filename))
+
     for ref_file in ref_files:
         scenarios = parse_scenarios_from_file(ref_file, limit=args.limit_scenarios)
         scenarios_with_images = filter(has_images, scenarios)
@@ -102,7 +110,7 @@ if __name__ == '__main__':
         n.add_code_cell(render("""
             scenarios = parse_scenarios_from_file('{{ ref_file }}')
             display(HTML(\"\"\"
-                <h1 id="{{ ref_file }}">{{ ref_file }}</h1>
+                <h2 id="{{ ref_file }}">{{ osp.basename(ref_file).split('_')[-1].split('.')[0] }}</h2>
                 <table id="">
                     <tr>
                         <th>
@@ -136,7 +144,7 @@ if __name__ == '__main__':
                     {% endfor %}
                 </table>
                 \"\"\"))
-            """, scenarios=scenarios, ref_file=ref_file, n_refs=n_refs))
+            """, scenarios=scenarios, ref_file=ref_file, n_refs=n_refs, osp=osp))
 
         # Each scenario
         for i, scenario in enumerate(scenarios_with_images):
@@ -152,7 +160,6 @@ if __name__ == '__main__':
         """.format(i))
             n.add_markdown_cell("Notes : ")
 
-    notebook_filename = '{0}.ipynb'.format(osp.basename(data_dir[:-1]))
     n.write(notebook_filename)
     print '{0} created ! ✨'.format(notebook_filename)
 
