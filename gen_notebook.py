@@ -24,8 +24,6 @@ def add_preambule():
         def display_image_side_by_side(*imgs):
             im_html = lambda im: '<img style="display:inline-block; width:50%%" src="data:image/png;base64,%s" />' % b64encode(im.data)
             display(HTML('<div style="display: flex; align-items: flex-end">%s</div>' % ''.join(map(im_html, imgs))))
-
-        scenarios = parse_scenarios_from_file('data/test/test_LCF_2refs.csv')
     """)
 
 def add_toggle_code():
@@ -97,6 +95,7 @@ if __name__ == '__main__':
 
         # Summary
         n.add_code_cell(render("""
+            scenarios = parse_scenarios_from_file('{{ ref_file }}')
             display(HTML(\"\"\"
                 <h1 id="{{ ref_file }}">{{ ref_file }}</h1>
                 <table id="">
@@ -106,10 +105,7 @@ if __name__ == '__main__':
                         </th>
                         {% for n in range(n_refs) %}
                             <th>
-                                Ref{{n}}
-                            </th>
-                            <th>
-                                Ref{{n}}
+                                Ref{{n + 1}}
                             </th>
                         {% endfor %}
                         <th>
