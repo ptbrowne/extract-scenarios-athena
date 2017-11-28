@@ -88,8 +88,12 @@ if __name__ == '__main__':
         scenarios = parse_scenarios_from_file(ref_file, limit=args.limit_scenarios)
         scenarios_with_images = filter(has_images, scenarios)
 
+        n_refs = len(scenarios[0].refs)
+
+        print 'Reference file: {0}'.format(ref_file)
         print 'Total number of scenarios: {0}'.format(len(scenarios))
         print 'Total number of scenarios with images: {0}'.format(len(scenarios_with_images))
+        print 'Number of references: {0}'.format(n_refs)
 
         # Summary
         n.add_code_cell(render("""
@@ -100,12 +104,14 @@ if __name__ == '__main__':
                         <th>
                             Name
                         </th>
-                        <th>
-                            Ref1
-                        </th>
-                        <th>
-                            Ref2
-                        </th>
+                        {% for n in range(n_refs) %}
+                            <th>
+                                Ref{n}
+                            </th>
+                            <th>
+                                Ref{n}
+                            </th>
+                        {% endfor %}
                         <th>
                             R-factor
                         </th>
@@ -119,8 +125,9 @@ if __name__ == '__main__':
                     {% for scenario in scenarios %}
                     <tr>
                         <td><a href="#sc{{scenario.id}}">{{scenario.id}}</a></td>
-                        <td>{{ scenario.refs[0] }}</td>
-                        <td>{{ scenario.refs[1] }}</td>
+                        {% for n in range(n_refs) %}
+                        <td>{{ scenario.refs[n] }}</td>
+                        {% endfor %}
                         <td>{{ '%.5f' % scenario.rfactor }}</td>
                         <td>{{ '%.2f' % scenario.chinu }}</td>
                         <td>{{ '%.2f' % scenario.chinu_delta }}</td>
@@ -128,7 +135,7 @@ if __name__ == '__main__':
                     {% endfor %}
                 </table>
                 \"\"\"))
-            """, scenarios=scenarios, ref_file=ref_file))
+            """, scenarios=scenarios, ref_file=ref_file, n_refs=n_refs))
 
         # Each scenario
         for i, scenario in enumerate(scenarios_with_images):
