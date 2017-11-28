@@ -26,7 +26,7 @@ def parse_scenario(line, headers, subheaders, chinu_ref):
     refs = sorted(refs, key=lambda ref: -ref.weight)
     return (refs, rfactor, chinu, chinu_delta)
 
-def parse_scenarios_from_file(filename):
+def parse_scenarios_from_file(filename, limit=10):
     """Extraire d'un CSV les scenarios"""
     with open(filename, 'rb') as csvfile:
         reader = csv.reader(csvfile)
@@ -36,7 +36,7 @@ def parse_scenarios_from_file(filename):
     results = reader[2:]
     results = map(parse_row, results)
     scenarios = []
-    for i, line in enumerate(results[:10]):
+    for i, line in enumerate(results[:limit]):
         if i < 1:
             continue
         line = map(lambda x: float(x) if x else 0, line)
