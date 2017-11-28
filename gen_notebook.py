@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from IPython.display import display, Image, HTML
 from parse import parse_scenarios_from_file
 from glob import glob
@@ -51,12 +52,29 @@ def add_toggle_code():
         <button class='noprint' onclick="javascript:code_toggle()">Toggle Code</button>\"\"\"))
     """)
 
+def exit(msg):
+    sys.stderr.write('{0}\n'.format(msg))
+    sys.exit(1)
+
 if __name__ == '__main__':
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('data_dir')
+    args = parser.parse_args()
+    data_dir = args.data_dir
+
+    if not osp.exists(data_dir):
+        exit('The directory {0} does not exist'.format(data_dir))
+
+    ref_files = glob('{0}/*refs.csv'.format(data_dir))
+    if len(ref_files) == 0:
+        exit('No refs files in {0}. Your refs files should end with "refs.csv". example: "test_LCF_2refs.csv"')
+
     add_preambule()
     add_toggle_code()
 
-    sample = 'test'
-    ref_files = glob('data/{0}/*refs.csv'.format(sample))
     n.add_code_cell(render("""
         display(HTML(\"\"\"
         <div class='noprint' style="position: fixed; top: 4rem; left: 1rem; background: white; box-shadow: 2px 2px 4px rgba(0,0,0,0.5)">
@@ -121,5 +139,7 @@ if __name__ == '__main__':
         """.format(i))
             n.add_markdown_cell("Notes : ")
 
-        n.write('{0}.ipynb'.format(sample))
+        notebook_filename = '{0}.ipynb'.format(osp.basename(data_dir[:-1]))
+        n.write(notebook_filename)
+        print '{0} created ! ✨'.format(notebook_filename)
 
