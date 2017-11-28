@@ -44,7 +44,7 @@ def parse_scenarios_from_file(filename, limit=10):
         chinu = line[CHINU]
         chinu_ref = results[1][CHINU]
         s = parse_scenario(line, headers, subheaders, chinu_ref)
-        scenario_id = i - 1
+        scenario_id = i
         scenario = Scenario(*([scenario_id] + list(s)))
         scenarios.append(scenario)
     return scenarios
