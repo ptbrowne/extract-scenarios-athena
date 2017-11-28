@@ -90,10 +90,14 @@ if __name__ == '__main__':
         </script>\"\"\"))""", ref_files=ref_files, osp=osp))
 
     # Main title
-    notebook_filename = '{0}.ipynb'.format(osp.basename(data_dir[:-1]))
+    filebase = osp.basename(data_dir if not data_dir.endswith('/') else data_dir[:-1])
+    notebook_filename = '{0}.ipynb'.format(filebase)
+    title = filebase.split('.')[0].replace('_', ' ')
+
+    print 'Title: {0}'.format(title)
     n.add_code_cell(render("""
-        display(HTML("<h1>{{ notebook_filename }}</h1>"))
-    """, notebook_filename=notebook_filename))
+        display(HTML("<h1>{{ title }}</h1>"))
+    """, title=title))
 
     for ref_file in ref_files:
         scenarios = parse_scenarios_from_file(ref_file, limit=args.limit_scenarios)
@@ -107,11 +111,11 @@ if __name__ == '__main__':
         print 'Number of references: {0}'.format(n_refs)
 
         # Summary
-        title = osp.basename(ref_file).split('_')[-1].split('.')[0]
+        heading = osp.basename(ref_file).split('_')[-1].split('.')[0].replace('refs', ' references')
         n.add_code_cell(render("""
             scenarios = parse_scenarios_from_file('{{ ref_file }}')
             display(HTML(\"\"\"
-                <h2 id="{{ ref_file }}">{{ title }}</h2>
+                <h2 id="{{ ref_file }}">{{ heading }}</h2>
                 <table id="">
                     <tr>
                         <th>
@@ -145,7 +149,7 @@ if __name__ == '__main__':
                     {% endfor %}
                 </table>
                 \"\"\"))
-            """, scenarios=scenarios, ref_file=ref_file, n_refs=n_refs, title=title))
+            """, scenarios=scenarios, ref_file=ref_file, n_refs=n_refs, heading=heading))
 
         # Each scenario
         for i, scenario in enumerate(scenarios_with_images):
