@@ -1,7 +1,7 @@
 from collections import namedtuple
 from utils import flatten
 
-_Scenario = namedtuple('Scenario', ['id', 'refs', 'rfactor', 'chinu', 'chinu_delta'])
+_Scenario = namedtuple('Scenario', ['id', 'refs', 'rfactor', 'chinu', 'rfactor_delta'])
 _Ref = namedtuple('Reference', ['name', 'weight'])
 
 def percentage(v):
@@ -23,7 +23,7 @@ class Scenario(_Scenario):
             map(str, self.refs),
             self.rfactor,
             self.chinu,
-            self.chinu_delta
+            self.rfactor_delta
         ])))
 
     def as_block(self):
