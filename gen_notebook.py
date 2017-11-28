@@ -83,7 +83,7 @@ if __name__ == '__main__':
             {% endfor %}
         </div>\"\"\"))""", ref_files=ref_files))
     for ref_file in ref_files:
-        scenarios = parse_scenarios_from_file(ref_file, limit=1000)
+        scenarios = parse_scenarios_from_file(ref_file, limit=20)
         scenarios_with_images = filter(has_images, scenarios)
 
         print 'Total number of scenarios: {0}'.format(len(scenarios))
