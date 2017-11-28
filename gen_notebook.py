@@ -129,7 +129,7 @@ if __name__ == '__main__':
                             Chinu
                         </th>
                         <th>
-                            Chinu Delta
+                            R-factor Delta
                         </th>
                     </tr>
                     {% for scenario in scenarios %}
@@ -140,7 +140,7 @@ if __name__ == '__main__':
                         {% endfor %}
                         <td>{{ '%.5f' % scenario.rfactor }}</td>
                         <td>{{ '%.2f' % scenario.chinu }}</td>
-                        <td>{{ '%.2f' % scenario.chinu_delta }}</td>
+                        <td>{{ '%.2f' % scenario.rfactor_delta }}</td>
                     </tr>
                     {% endfor %}
                 </table>
