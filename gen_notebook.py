@@ -84,7 +84,7 @@ if __name__ == '__main__':
         </div>\"\"\"))""", ref_files=ref_files))
     for ref_file in ref_files:
         scenarios = parse_scenarios_from_file(ref_file)
-        scenarios = filter(has_images, scenarios)
+        scenarios_with_images = filter(has_images, scenarios)
 
         # Summary
         n.add_code_cell(render("""
@@ -126,7 +126,7 @@ if __name__ == '__main__':
             """, scenarios=scenarios, ref_file=ref_file))
 
         # Each scenario
-        for i, scenario in enumerate(scenarios):
+        for i, scenario in enumerate(scenarios_with_images):
             n.add_code_cell("""
                 display(HTML('<h2 id="sc{0}">scenario {0}</h2>') )
                 scenario = scenarios[{0}]
