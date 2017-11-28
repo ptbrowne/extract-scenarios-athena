@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
     n.add_code_cell(render("""
         display(HTML(\"\"\"
-        <div class='noprint refSelect' style="z-index: 1000; position: fixed; top: 4rem; left: 1rem; background: white; box-shadow: 2px 2px 4px rgba(0,0,0,0.5)">
+        <div class='noprint refSelect' style="z-index: 1000; padding: 0.5rem; position: fixed; top: 4rem; left: 1rem; background: white; box-shadow: 2px 2px 4px rgba(0,0,0,0.5)">
             {% for ref_file in ref_files %}
                 <a href='#{{ ref_file }}'>{{ osp.basename(ref_file) }}</a><br/>
             {% endfor %}
