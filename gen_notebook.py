@@ -86,6 +86,9 @@ if __name__ == '__main__':
         scenarios = parse_scenarios_from_file(ref_file, limit=1000)
         scenarios_with_images = filter(has_images, scenarios)
 
+        print 'Total number of scenarios: {0}'.format(len(scenarios))
+        print 'Total number of scenarios with images: {0}'.format(len(scenarios_with_images))
+
         # Summary
         n.add_code_cell(render("""
             display(HTML(\"\"\"
