@@ -11,8 +11,20 @@ n = Notebook()
 def render(template, **data):
     return Template(template).render(data)
 
-def has_images(scenario):
-    return osp.exists('data/test/test_LCF_2refs_sc{0}_k.png'.format(scenario.id))
+def has_images(path, scenario):
+    scenario_id = scenario.id
+    n_refs = len(scenario.refs)
+    pattern = '{path}/*{n_refs}refs_sc{scenario_id}_k.png'.format(path=path, scenario_id=scenario.id, n_refs=len(scenario.refs))
+    print pattern
+    return len(glob(pattern)) > 0
+
+def get_image(path, scenario_id, n_refs, k_or_r):
+    return glob('{path}/*{n_refs}refs_sc{scenario_id}_{k_or_r}.png'.format(
+        path=path,
+        scenario_id=scenario_id,
+        n_refs=n_refs,
+        k_or_r=k_or_r
+    ))[0]
 
 def add_preambule():
     # Preliminary
@@ -61,6 +73,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('data_dir')
     parser.add_argument('--limit-scenarios', default=20)
+    parser.add_argument('--force', action='store_true', default=False)
     args = parser.parse_args()
 
     data_dir = args.data_dir
@@ -101,7 +114,7 @@ if __name__ == '__main__':
 
     for ref_file in ref_files:
         scenarios = parse_scenarios_from_file(ref_file, limit=args.limit_scenarios)
-        scenarios_with_images = filter(has_images, scenarios)
+        scenarios_with_images = filter(lambda scenario: has_images(data_dir, scenario), scenarios)
 
         n_refs = len(scenarios[0].refs)
 
@@ -113,7 +126,7 @@ if __name__ == '__main__':
         # Summary
         heading = osp.basename(ref_file).split('_')[-1].split('.')[0].replace('refs', ' references')
         n.add_code_cell(render("""
-            scenarios = parse_scenarios_from_file('{{ ref_file }}')
+            scenarios = {scenario.id: scenario for scenario in parse_scenarios_from_file('{{ ref_file }}', limit={{limit_scenarios}})}
             display(HTML(\"\"\"
                 <h2 id="{{ ref_file }}">{{ heading }}</h2>
                 <table id="">
@@ -138,7 +151,7 @@ if __name__ == '__main__':
                     </tr>
                     {% for scenario in scenarios %}
                     <tr>
-                        <td><a href="#sc{{scenario.id}}">{{scenario.id}}</a></td>
+                        <td><a href="#{{n_refs}}refs_sc{{scenario.id}}">{{scenario.id}}</a></td>
                         {% for n in range(n_refs) %}
                         <td>{{ scenario.refs[n] }}</td>
                         {% endfor %}
@@ -149,22 +162,35 @@ if __name__ == '__main__':
                     {% endfor %}
                 </table>
                 \"\"\"))
-            """, scenarios=scenarios, ref_file=ref_file, n_refs=n_refs, heading=heading))
+            """, scenarios=scenarios, ref_file=ref_file, n_refs=n_refs, heading=heading, limit_scenarios=args.limit_scenarios))
 
         # Each scenario
-        for i, scenario in enumerate(scenarios_with_images):
+        for scenario in scenarios_with_images:
+            image_k = get_image(data_dir, scenario.id, len(scenario.refs), 'k')
+            image_r = get_image(data_dir, scenario.id, len(scenario.refs), 'r')
             n.add_code_cell("""
-                display(HTML('<h2 id="sc{0}">scenario {0}</h2>') )
-                scenario = scenarios[{0}]
+                display(HTML('<h2 id="{n_refs}refs_sc{scenario.id}">scenario {scenario.id}</h2>') )
+                scenario = scenarios[{scenario.id}]
                 for ref in scenario.refs:
                     print ref
                 print 'R=', scenario.rfactor
                 display_image_side_by_side(
-                    Image('data/test/test_LCF_2refs_sc{0}_k.png'),
-                    Image('data/test/test_LCF_2refs_sc{0}_r.png') )
-        """.format(i))
+                    Image('{image_k}'),
+                    Image('{image_r}'))
+            """.format(scenario=scenario, n_refs=len(scenario.refs), image_k = image_k, image_r=image_r))
             n.add_markdown_cell("Notes : ")
 
-    n.write(notebook_filename)
-    print '{0} created ! ✨'.format(notebook_filename)
+
+    def write():
+        n.write(notebook_filename)
+        print '{0} created ! ✨'.format(notebook_filename)
+
+    if osp.exists(notebook_filename) and not args.force:
+        answer = raw_input("{0} already exists, type y to overwrite it.".format(notebook_filename))
+        if answer == 'y':
+            write()
+        else:
+            print 'Aborted'
+    else:
+        write()
 
