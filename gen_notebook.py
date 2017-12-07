@@ -15,7 +15,6 @@ def has_images(path, scenario):
     scenario_id = scenario.id
     n_refs = len(scenario.refs)
     pattern = '{path}/*{n_refs}refs_sc{scenario_id}_k.png'.format(path=path, scenario_id=scenario.id, n_refs=len(scenario.refs))
-    print pattern
     return len(glob(pattern)) > 0
 
 def get_image(path, scenario_id, n_refs, k_or_r):
