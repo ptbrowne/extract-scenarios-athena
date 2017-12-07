@@ -36,7 +36,7 @@ def add_preambule():
         def display_image_side_by_side(*imgs):
             im_html = lambda im: '<img style="display:inline-block; width:50%%" src="data:image/png;base64,%s" />' % b64encode(im.data)
             display(HTML('<div style="display: flex; align-items: flex-end">%s</div>' % ''.join(map(im_html, imgs))))
-    """)
+    """, id='preambule')
 
 def add_toggle_code():
     n.add_code_cell("""
@@ -60,7 +60,7 @@ def add_toggle_code():
         }
         </style>
         <button class='noprint' onclick="javascript:code_toggle()">Toggle Code</button>\"\"\"))
-    """)
+    """, id='toggle_code')
 
 def exit(msg):
     sys.stderr.write('{0}\n'.format(msg))
@@ -100,7 +100,7 @@ if __name__ == '__main__':
             var node = document.querySelector('.refSelect');
             node.parentNode.removeChild(node);
             document.body.appendChild(node)
-        </script>\"\"\"))""", ref_files=ref_files, osp=osp))
+        </script>\"\"\"))""", ref_files=ref_files, osp=osp), id='selector')
 
     # Main title
     filebase = osp.basename(data_dir if not data_dir.endswith('/') else data_dir[:-1])
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     print 'Title: {0}'.format(title)
     n.add_code_cell(render("""
         display(HTML("<h1>{{ title }}</h1>"))
-    """, title=title))
+    """, title=title), id='title')
 
     for ref_file in ref_files:
         scenarios = parse_scenarios_from_file(ref_file, limit=args.limit_scenarios)
@@ -162,7 +162,8 @@ if __name__ == '__main__':
                     {% endfor %}
                 </table>
                 \"\"\"))
-            """, scenarios=scenarios, ref_file=ref_file, n_refs=n_refs, heading=heading, limit_scenarios=args.limit_scenarios))
+            """, scenarios=scenarios, ref_file=ref_file, n_refs=n_refs, heading=heading, limit_scenarios=args.limit_scenarios),
+            id='{n_refs}refs_summary'.format(n_refs=n_refs))
 
         # Each scenario
         for scenario in scenarios_with_images:
@@ -177,20 +178,22 @@ if __name__ == '__main__':
                 display_image_side_by_side(
                     Image('{image_k}'),
                     Image('{image_r}'))
-            """.format(scenario=scenario, n_refs=len(scenario.refs), image_k = image_k, image_r=image_r))
-            n.add_markdown_cell("Notes : ")
+            """.format(scenario=scenario, n_refs=len(scenario.refs), image_k = image_k, image_r=image_r), id='sc{scenario.id}_code'.format(scenario=scenario))
+            n.add_markdown_cell("Notes : ", id='sc{scenario.id}_notes'.format(scenario=scenario))
 
 
-    def write():
+    def write(n):
         n.write(notebook_filename)
         print '{0} created ! ✨'.format(notebook_filename)
 
     if osp.exists(notebook_filename) and not args.force:
-        answer = raw_input("{0} already exists, type y to overwrite it.".format(notebook_filename))
-        if answer == 'y':
-            write()
+        if raw_input('Do you want to merge notebook (y for yes) ? ') == 'y':
+            print "{0} already exists, merging...".format(notebook_filename)
+            n1 = Notebook.open(notebook_filename)
+            n1.merge(n)
+            write(n1)
         else:
-            print 'Aborted'
+            print 'Aborted..'
     else:
-        write()
+        write(n)
 
