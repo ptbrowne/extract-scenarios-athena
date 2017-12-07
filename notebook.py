@@ -92,18 +92,23 @@ class Notebook(dict):
     cur1, cur2 = safe_next(i1), safe_next(i2)
     while cur1 is not None or cur2 is not None:
       if cur1 is None:
+        print 'from cur2 ', cur2['metadata']['id']
         res.append(cur2)
         cur2 = safe_next(i2)
       elif cur2 is None:
+        print 'from cur1 ', cur1['metadata']['id']
         res.append(cur1)
         cur1 = safe_next(i1)
       elif cur1['metadata']['id'] < cur2['metadata']['id']:
+        print 'from cur1 ', cur1['metadata']['id']
         res.append(cur1)
         cur1 = safe_next(i1)
       elif cur1['metadata']['id'] > cur2['metadata']['id']:
+        print 'from cur2 ', cur2['metadata']['id']
         res.append(cur2)
         cur2 = safe_next(i2)
       elif cur1['metadata']['id'] == cur2['metadata']['id']:
+        print 'from cur1 ', cur1['metadata']['id']
         res.append(cur1)
         cur1 = safe_next(i1)
         cur2 = safe_next(i2)
