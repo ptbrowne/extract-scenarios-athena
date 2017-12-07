@@ -163,12 +163,13 @@ if __name__ == '__main__':
                 </table>
                 \"\"\"))
             """, scenarios=scenarios, ref_file=ref_file, n_refs=n_refs, heading=heading, limit_scenarios=args.limit_scenarios),
-            id='{n_refs}refs_summary'.format(n_refs=n_refs))
+            id='2_{n_refs}refs.1_summary'.format(n_refs=n_refs))
 
         # Each scenario
         for scenario in scenarios_with_images:
             image_k = get_image(data_dir, scenario.id, len(scenario.refs), 'k')
             image_r = get_image(data_dir, scenario.id, len(scenario.refs), 'r')
+            data = dict(scenario=scenario, n_refs=n_refs, image_k = image_k, image_r=image_r)
             n.add_code_cell("""
                 display(HTML('<h2 id="{n_refs}refs_sc{scenario.id}">scenario {scenario.id}</h2>') )
                 scenario = scenarios[{scenario.id}]
@@ -178,8 +179,8 @@ if __name__ == '__main__':
                 display_image_side_by_side(
                     Image('{image_k}'),
                     Image('{image_r}'))
-            """.format(scenario=scenario, n_refs=len(scenario.refs), image_k = image_k, image_r=image_r), id='sc{scenario.id}_code'.format(scenario=scenario))
-            n.add_markdown_cell("Notes : ", id='sc{scenario.id}_notes'.format(scenario=scenario))
+            """.format(**data), id='2_{n_refs}refs.2_sc{scenario.id}_1_code'.format(**data))
+            n.add_markdown_cell("Notes : ", id='2_{n_refs}refs.2_sc{scenario.id}_2_notes'.format(**data))
 
 
     def write(n):
