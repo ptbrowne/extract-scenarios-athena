@@ -1,4 +1,5 @@
 from json import dump, load
+from itertools import chain
 
 def deindent(splitted_source):
   n_space = 0
@@ -20,6 +21,9 @@ def get_cell_id(cell):
     return cell['metadata']['id']
   except KeyError:
     return None
+
+def get_group(cell):
+  return get_cell_id(cell).split('.')[0]
 
 class Notebook(dict):
   def __init__(self, *args, **kwargs):
@@ -88,30 +92,42 @@ class Notebook(dict):
   @staticmethod
   def merge_cells(c1, c2):
     res = []
-    i1, i2 = iter(c1), iter(c2)
-    cur1, cur2 = safe_next(i1), safe_next(i2)
-    while cur1 is not None or cur2 is not None:
-      if cur1 is None:
-        print 'from cur2 ', cur2['metadata']['id']
-        res.append(cur2)
-        cur2 = safe_next(i2)
-      elif cur2 is None:
-        print 'from cur1 ', cur1['metadata']['id']
-        res.append(cur1)
-        cur1 = safe_next(i1)
-      elif cur1['metadata']['id'] < cur2['metadata']['id']:
-        print 'from cur1 ', cur1['metadata']['id']
-        res.append(cur1)
-        cur1 = safe_next(i1)
-      elif cur1['metadata']['id'] > cur2['metadata']['id']:
-        print 'from cur2 ', cur2['metadata']['id']
-        res.append(cur2)
-        cur2 = safe_next(i2)
-      elif cur1['metadata']['id'] == cur2['metadata']['id']:
-        print 'from cur1 ', cur1['metadata']['id']
-        res.append(cur1)
-        cur1 = safe_next(i1)
-        cur2 = safe_next(i2)
+
+    groups = [get_group(c) for c in chain(c1, c2)]
+    groups = list(set(groups))
+
+    groups = sorted(groups)
+
+    for group in groups:
+
+      def iter_on(cells, group):
+        return (c for c in cells if get_group(c) == group)
+
+      i1, i2 = iter_on(c1, group), iter_on(c2, group)
+      cur1, cur2 = safe_next(i1), safe_next(i2)
+
+      while cur1 is not None or cur2 is not None:
+        if cur1 is None:
+          # print '+ ', get_cell_id(cur2)
+          res.append(cur2)
+          cur2 = safe_next(i2)
+        elif cur2 is None:
+          # print '  ', get_cell_id(cur1)
+          res.append(cur1)
+          cur1 = safe_next(i1)
+        elif get_cell_id(cur1) < get_cell_id(cur2):
+          # print '  ', get_cell_id(cur1)
+          res.append(cur1)
+          cur1 = safe_next(i1)
+        elif get_cell_id(cur1) > get_cell_id(cur2):
+          # print '+ ', get_cell_id(cur2)
+          res.append(cur2)
+          cur2 = safe_next(i2)
+        elif get_cell_id(cur1) == get_cell_id(cur2):
+          # print '  ', cur1['metadata']['id']
+          res.append(cur1)
+          cur1 = safe_next(i1)
+          cur2 = safe_next(i2)
     return res
 
   def merge(self, other):

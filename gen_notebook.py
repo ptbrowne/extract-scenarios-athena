@@ -35,7 +35,7 @@ def add_preambule():
         def display_image_side_by_side(*imgs):
             im_html = lambda im: '<img style="display:inline-block; width:50%%" src="data:image/png;base64,%s" />' % b64encode(im.data)
             display(HTML('<div style="display: flex; align-items: flex-end">%s</div>' % ''.join(map(im_html, imgs))))
-    """, id='preambule')
+    """, id='1_head.1_preambule')
 
 def add_toggle_code():
     n.add_code_cell("""
@@ -59,7 +59,7 @@ def add_toggle_code():
         }
         </style>
         <button class='noprint' onclick="javascript:code_toggle()">Toggle Code</button>\"\"\"))
-    """, id='toggle_code')
+    """, id='1_head.2_toggle_code')
 
 def exit(msg):
     sys.stderr.write('{0}\n'.format(msg))
@@ -99,7 +99,7 @@ if __name__ == '__main__':
             var node = document.querySelector('.refSelect');
             node.parentNode.removeChild(node);
             document.body.appendChild(node)
-        </script>\"\"\"))""", ref_files=ref_files, osp=osp), id='selector')
+        </script>\"\"\"))""", ref_files=ref_files, osp=osp), id='1_head.3_selector')
 
     # Main title
     filebase = osp.basename(data_dir if not data_dir.endswith('/') else data_dir[:-1])
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     print 'Title: {0}'.format(title)
     n.add_code_cell(render("""
         display(HTML("<h1>{{ title }}</h1>"))
-    """, title=title), id='title')
+    """, title=title), id='1_head.4_title')
 
     for ref_file in ref_files:
         scenarios = parse_scenarios_from_file(ref_file, limit=args.limit_scenarios)
