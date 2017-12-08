@@ -1,11 +1,16 @@
 from collections import namedtuple
 from utils import flatten
+import csv
 
 _Scenario = namedtuple('Scenario', ['id', 'refs', 'rfactor', 'chinu', 'rfactor_delta'])
 _Ref = namedtuple('Reference', ['name', 'weight'])
 
 def percentage(v):
     return round(v * 10000)/100
+
+# Columns
+RFACTOR = 0
+CHINU = 1
 
 class Ref(_Ref):
     def __str__(self):
@@ -37,3 +42,49 @@ class Scenario(_Scenario):
             'Scenario %s' % self.id,  # Nom du scenario
             '\n'.join(map(str, self.refs)) # Chaque ref sur une ligne
         ]))
+
+    @staticmethod
+    def parse_cell(cell):
+        """Transformer la valeur d'une cellule en nombre. 0 s'il n'y a rien"""
+        try:
+            return float(cell) if cell else 0
+        except Exception:
+            return cell
+
+    @staticmethod
+    def parse_row(line):
+        """Transformer les valeurs d'une ligne en nombres"""
+        return map(Scenario.parse_cell, line)
+
+    @staticmethod
+    def parse_scenario(line, headers, subheaders, ref_line):
+        """Transformer une ligne en un scenario"""
+        chinu = line[CHINU]
+        rfactor = line[RFACTOR]
+        rfactor_ref = ref_line[RFACTOR]
+        rfactor_delta = (rfactor - rfactor_ref) / rfactor_ref * 100
+        refs = [Ref(headers[i], cell) for i, cell in enumerate(line) if cell and subheaders[i] == 'weight']
+        refs = sorted(refs, key=lambda ref: -ref.weight)
+        return (refs, rfactor, chinu, rfactor_delta)
+
+    @staticmethod
+    def from_file(filename, limit=10):
+        """Extraire d'un CSV les scenarios"""
+        with open(filename, 'rb') as csvfile:
+            reader = csv.reader(csvfile)
+            reader = list(reader)
+        headers = reader[0]
+        subheaders = reader[1]
+        results = reader[2:]
+        results = map(Scenario.parse_row, results)
+        scenarios = []
+        ref_line = results[0]
+        for i, line in enumerate(results[:limit]):
+            line = map(lambda x: float(x) if x else 0, line)
+            results[i] = line
+            chinu = line[CHINU]
+            s = Scenario.parse_scenario(line, headers, subheaders, ref_line)
+            scenario_id = i + 1
+            scenario = Scenario(*([scenario_id] + list(s)))
+            scenarios.append(scenario)
+        return scenarios

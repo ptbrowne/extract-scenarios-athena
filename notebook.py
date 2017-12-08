@@ -1,21 +1,7 @@
 from json import dump, load
 from itertools import chain
 from contextlib import contextmanager
-
-def deindent(splitted_source):
-  n_space = 0
-  for x in splitted_source[0]:
-    if x == ' ':
-      n_space += 1
-    else:
-      break
-  return map(lambda x: x[n_space:], splitted_source)
-
-def safe_next(iterator):
-  try:
-    return iterator.next()
-  except StopIteration:
-    return None
+from utils import deindent, safe_next
 
 def get_cell_id(cell):
   try:

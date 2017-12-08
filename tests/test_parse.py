@@ -4,14 +4,14 @@ import os.path as osp
 test_dir = osp.dirname(__file__)
 sys.path.append(osp.abspath(osp.join(test_dir, '..')))
 
-from parse import parse_scenarios_from_file
+from scenario import Scenario
 
 def float_equal(f1, f2):
     return abs(f2 - f1) < 0.00001
 
 def test_parse():
     test_file = osp.join(test_dir, 'Zn_Clos_sub_SSRL_LCF_2refs.csv')
-    scenarios = parse_scenarios_from_file(test_file)
+    scenarios = Scenario.from_file(test_file)
     
     # First scenario
     assert scenarios[0].id == 1
