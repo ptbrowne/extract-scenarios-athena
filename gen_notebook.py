@@ -35,7 +35,7 @@ def add_preambule():
         def display_image_side_by_side(*imgs):
             im_html = lambda im: '<img style="display:inline-block; width:50%%" src="data:image/png;base64,%s" />' % b64encode(im.data)
             display(HTML('<div style="display: flex; align-items: flex-end">%s</div>' % ''.join(map(im_html, imgs))))
-    """, id='1_head.1_preambule')
+    """, id='1_preambule')
 
 def add_toggle_code():
     n.add_code_cell("""
@@ -59,7 +59,26 @@ def add_toggle_code():
         }
         </style>
         <button class='noprint' onclick="javascript:code_toggle()">Toggle Code</button>\"\"\"))
-    """, id='1_head.2_toggle_code')
+    """, id='2_toggle_code')
+
+def add_selector(ref_files):
+    n.add_code_cell(render("""
+        display(HTML(\"\"\"
+        <div class='noprint refSelect' style="z-index: 1000; padding: 0.5rem; position: fixed; top: 4rem; left: 1rem; background: white; box-shadow: 2px 2px 4px rgba(0,0,0,0.5)">
+            {% for ref_file in ref_files %}
+                <a href='#{{ ref_file }}'>{{ basename(ref_file) }}</a><br/>
+            {% endfor %}
+        </div>
+        <script type="text/javascript">
+            var node = document.querySelector('.refSelect');
+            node.parentNode.removeChild(node);
+            document.body.appendChild(node)
+        </script>\"\"\"))""", ref_files=ref_files, basename=osp.basename), id='3_selector')
+
+def add_title(title):
+    n.add_code_cell(render("""
+        display(HTML("<h1>{{ title }}</h1>"))
+    """, title=title), id='4_title')
 
 def exit(msg):
     sys.stderr.write('{0}\n'.format(msg))
@@ -84,32 +103,18 @@ if __name__ == '__main__':
     if len(ref_files) == 0:
         exit('No refs files in {0}. Your refs files should end with "refs.csv". example: "test_LCF_2refs.csv"')
 
-    add_preambule()
-    add_toggle_code()
-
-    # Reference selector
-    n.add_code_cell(render("""
-        display(HTML(\"\"\"
-        <div class='noprint refSelect' style="z-index: 1000; padding: 0.5rem; position: fixed; top: 4rem; left: 1rem; background: white; box-shadow: 2px 2px 4px rgba(0,0,0,0.5)">
-            {% for ref_file in ref_files %}
-                <a href='#{{ ref_file }}'>{{ osp.basename(ref_file) }}</a><br/>
-            {% endfor %}
-        </div>
-        <script type="text/javascript">
-            var node = document.querySelector('.refSelect');
-            node.parentNode.removeChild(node);
-            document.body.appendChild(node)
-        </script>\"\"\"))""", ref_files=ref_files, osp=osp), id='1_head.3_selector')
-
-    # Main title
     filebase = osp.basename(data_dir if not data_dir.endswith('/') else data_dir[:-1])
     notebook_filename = '{0}.ipynb'.format(filebase)
     title = filebase.split('.')[0].replace('_', ' ')
-
     print 'Title: {0}'.format(title)
-    n.add_code_cell(render("""
-        display(HTML("<h1>{{ title }}</h1>"))
-    """, title=title), id='1_head.4_title')
+
+    with n.subsection('1_head'):
+        add_preambule()
+        add_toggle_code()
+        add_selector(ref_files)
+        add_title(title=title)
+
+        # Main title
 
     for ref_file in ref_files:
         scenarios = parse_scenarios_from_file(ref_file, limit=args.limit_scenarios)
@@ -123,63 +128,56 @@ if __name__ == '__main__':
         print 'Number of references: {0}'.format(n_refs)
 
         # Summary
-        heading = osp.basename(ref_file).split('_')[-1].split('.')[0].replace('refs', ' references')
-        n.add_code_cell(render("""
-            scenarios = {scenario.id: scenario for scenario in parse_scenarios_from_file('{{ ref_file }}', limit={{limit_scenarios}})}
-            display(HTML(\"\"\"
-                <h2 id="{{ ref_file }}">{{ heading }}</h2>
-                <table id="">
-                    <tr>
-                        <th>
-                            Name
-                        </th>
-                        {% for n in range(n_refs) %}
-                            <th>
-                                Ref{{n + 1}}
-                            </th>
-                        {% endfor %}
-                        <th>
-                            R-factor
-                        </th>
-                        <th>
-                            Chinu
-                        </th>
-                        <th>
-                            R-factor Delta
-                        </th>
-                    </tr>
-                    {% for scenario in scenarios %}
-                    <tr>
-                        <td><a href="#{{n_refs}}refs_sc{{scenario.id}}">{{scenario.id}}</a></td>
-                        {% for n in range(n_refs) %}
-                        <td>{{ scenario.refs[n] }}</td>
-                        {% endfor %}
-                        <td>{{ '%.5f' % scenario.rfactor }}</td>
-                        <td>{{ '%.2f' % scenario.chinu }}</td>
-                        <td>{{ '%.2f' % scenario.rfactor_delta }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
-                \"\"\"))
-            """, scenarios=scenarios, ref_file=ref_file, n_refs=n_refs, heading=heading, limit_scenarios=args.limit_scenarios),
-            id='2_{n_refs}refs.1_summary'.format(n_refs=n_refs))
+        with n.subsection('2_{n_refs}refs'.format(n_refs=n_refs)):
 
-        # Each scenario
-        for scenario in scenarios_with_images:
-            image_k = get_image(data_dir, scenario.id, len(scenario.refs), 'k')
-            image_r = get_image(data_dir, scenario.id, len(scenario.refs), 'r')
-            data = dict(scenario=scenario, n_refs=n_refs, image_k = image_k, image_r=image_r)
-            n.add_code_cell("""
-                display(HTML('<h2 id="{n_refs}refs_sc{scenario.id}">scenario {scenario.id}</h2>') )
-                scenario = scenarios[{scenario.id}]
-                for ref in scenario.refs:
-                    print ref
-                print 'R=', scenario.rfactor
-                display_image_side_by_side(
-                    Image('{image_k}'),
-                    Image('{image_r}'))
-            """.format(**data), id='2_{n_refs}refs.2_sc{scenario.id}_1_code'.format(**data))
-            n.add_markdown_cell("Notes : ", id='2_{n_refs}refs.2_sc{scenario.id}_2_notes'.format(**data))
+            heading = osp.basename(ref_file).split('_')[-1].split('.')[0].replace('refs', ' references')
+            n.add_code_cell(render("""
+                scenarios = {scenario.id: scenario for scenario in parse_scenarios_from_file('{{ ref_file }}', limit={{limit_scenarios}})}
+                display(HTML(\"\"\"
+                    <h2 id="{{ ref_file }}">{{ heading }}</h2>
+                    <table id="">
+                        <tr>
+                            <th>Name</th>
+                            {% for n in range(n_refs) %}
+                                <th>Ref{{n + 1}}</th>
+                            {% endfor %}
+                            <th>R-factor</th>
+                            <th>Chinu</th>
+                            <th>R-factor Delta</th>
+                        </tr>
+                        {% for scenario in scenarios %}
+                        <tr>
+                            <td><a href="#{{n_refs}}refs_sc{{scenario.id}}">{{scenario.id}}</a></td>
+                            {% for n in range(n_refs) %}
+                            <td>{{ scenario.refs[n] }}</td>
+                            {% endfor %}
+                            <td>{{ '%.5f' % scenario.rfactor }}</td>
+                            <td>{{ '%.2f' % scenario.chinu }}</td>
+                            <td>{{ '%.2f' % scenario.rfactor_delta }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                    \"\"\"))
+                """, scenarios=scenarios, ref_file=ref_file, n_refs=n_refs, heading=heading, limit_scenarios=args.limit_scenarios),
+                id='1_summary')
+
+            # Each scenario
+            for scenario in scenarios_with_images:
+                image_k = get_image(data_dir, scenario.id, len(scenario.refs), 'k')
+                image_r = get_image(data_dir, scenario.id, len(scenario.refs), 'r')
+                data = dict(scenario=scenario, n_refs=n_refs, image_k = image_k, image_r=image_r)
+                with n.subsection('2_sc{scenario.id}'.format(scenario=scenario)):
+                    n.add_code_cell("""
+                        display(HTML('<h2 id="{n_refs}refs_sc{scenario.id}">scenario {scenario.id}</h2>') )
+                        scenario = scenarios[{scenario.id}]
+                        for ref in scenario.refs:
+                            print ref
+                        print 'R=', scenario.rfactor
+                        display_image_side_by_side(
+                            Image('{image_k}'),
+                            Image('{image_r}'))
+                    """.format(**data), id='1_code')
+                    n.add_markdown_cell("Notes : ", id='2_notes')
 
 
     def write(n):

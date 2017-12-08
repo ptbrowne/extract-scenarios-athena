@@ -1,5 +1,6 @@
 from json import dump, load
 from itertools import chain
+from contextlib import contextmanager
 
 def deindent(splitted_source):
   n_space = 0
@@ -29,6 +30,7 @@ class Notebook(dict):
   def __init__(self, *args, **kwargs):
     super(Notebook, self).__init__(*args, **kwargs)
 
+    self.section = ''
     self.update({
      "cells": [],
      "metadata": {
@@ -61,7 +63,7 @@ class Notebook(dict):
     cell = {
        "cell_type": type,
        "source": splitted,
-       "metadata": { "id": id }
+       "metadata": { "id": '%s.%s' % (self.section, id) if len(self.section) else id }
     }
     if id:
       cell['metadata']
@@ -76,6 +78,13 @@ class Notebook(dict):
 
   def add_markdown_cell(self, source, id=None):
     self.add_cell(source, 'markdown', id)
+
+  @contextmanager
+  def subsection(self, section_name):
+    old = self.section
+    self.section = '%s.%s' % (self.section, section_name) if len(self.section) else section_name 
+    yield
+    self.section = old
 
   def write(self, filename):
     with open(filename, 'w+') as f:
