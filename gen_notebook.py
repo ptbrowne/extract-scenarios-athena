@@ -37,30 +37,6 @@ def add_preambule():
             display(HTML('<div style="display: flex; align-items: flex-end">%s</div>' % ''.join(map(im_html, imgs))))
     """, id='1_preambule')
 
-def add_toggle_code():
-    n.add_code_cell("""
-        display(HTML(\"\"\"<script>
-            var code_show=true; //true -> hide code at first
-
-            function code_toggle () {
-                $('div.prompt').hide(); // always hide prompt
-                if (code_show){
-                    $('div.input').hide();
-                } else {
-                    $('div.input').show();
-                }
-                code_show = !code_show
-            }
-            $(document).ready(code_toggle);
-        </script>
-        <style>
-        @media print {
-          .noprint { display: none }
-        }
-        </style>
-        <button class='noprint' onclick="javascript:code_toggle()">Toggle Code</button>\"\"\"))
-    """, id='2_toggle_code')
-
 def add_selector(ref_files):
     n.add_code_cell(render("""
         display(HTML(\"\"\"
@@ -110,7 +86,6 @@ if __name__ == '__main__':
 
     with n.subsection('1_head'):
         add_preambule()
-        add_toggle_code()
         add_selector(ref_files)
         add_title(title=title)
 
