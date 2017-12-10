@@ -100,7 +100,7 @@ if __name__ == '__main__':
             n.add_code_cell(render("""
                 scenarios = {scenario.id: scenario for scenario in parse_scenarios_from_file('{{ ref_file }}', limit={{limit_scenarios}})}
                 display(HTML(\"\"\"
-                    <h1 id="{{ ref_file }}">{{ heading }}</h1>
+                    <h2 id="{{ ref_file }}">{{ heading }}</h2>
                     <table id="">
                         <tr>
                             <th>Name</th>
@@ -134,7 +134,7 @@ if __name__ == '__main__':
                 data = dict(scenario=scenario, n_refs=n_refs, image_k = image_k, image_r=image_r)
                 with n.subsection('2_sc{scenario.id}'.format(scenario=scenario)):
                     n.add_code_cell("""
-                        display(HTML('<h2 id="{n_refs}refs_sc{scenario.id}">scenario {scenario.id}</h2>') )
+                        display(HTML('<h3 id="{n_refs}refs_sc{scenario.id}">scenario {scenario.id}</h3>') )
                         scenario = scenarios[{scenario.id}]
                         for ref in scenario.refs:
                             print ref
