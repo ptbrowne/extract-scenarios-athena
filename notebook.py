@@ -47,12 +47,14 @@ class Notebook(dict):
     if splitted[0] == "\n": splitted = splitted[1:]
     if splitted[-1] == "\n": splitted = splitted[:-1]
     cell = {
-       "cell_type": type,
-       "source": splitted,
-       "metadata": { "id": '%s.%s' % (self.section, id) if len(self.section) else id }
+      "cell_type": type,
+      "source": splitted,
+      "metadata": {
+        "id": '%s.%s' % (self.section, id) if len(self.section) else id,
+        "hide_input": True,
+        "init_cell": True
+      }
     }
-    if id:
-      cell['metadata']
     if type == 'code':
         cell['source'] = deindent(splitted)
         cell['execution_count'] = None
