@@ -37,20 +37,6 @@ def add_preambule():
             display(HTML('<div style="display: flex; align-items: flex-end">%s</div>' % ''.join(map(im_html, imgs))))
     """, id='1_preambule')
 
-def add_selector(ref_files):
-    n.add_code_cell(render("""
-        display(HTML(\"\"\"
-        <div class='noprint refSelect' style="z-index: 1000; padding: 0.5rem; position: fixed; top: 4rem; left: 1rem; background: white; box-shadow: 2px 2px 4px rgba(0,0,0,0.5)">
-            {% for ref_file in ref_files %}
-                <a href='#{{ ref_file }}'>{{ basename(ref_file) }}</a><br/>
-            {% endfor %}
-        </div>
-        <script type="text/javascript">
-            var node = document.querySelector('.refSelect');
-            node.parentNode.removeChild(node);
-            document.body.appendChild(node)
-        </script>\"\"\"))""", ref_files=ref_files, basename=osp.basename), id='3_selector')
-
 def add_title(title):
     n.add_code_cell(render("""
         display(HTML("<h1>{{ title }}</h1>"))
@@ -86,7 +72,6 @@ if __name__ == '__main__':
 
     with n.subsection('1_head'):
         add_preambule()
-        add_selector(ref_files)
         add_title(title=title)
 
         # Main title
@@ -109,7 +94,7 @@ if __name__ == '__main__':
             n.add_code_cell(render("""
                 scenarios = {scenario.id: scenario for scenario in parse_scenarios_from_file('{{ ref_file }}', limit={{limit_scenarios}})}
                 display(HTML(\"\"\"
-                    <h2 id="{{ ref_file }}">{{ heading }}</h2>
+                    <h1 id="{{ ref_file }}">{{ heading }}</h1>
                     <table id="">
                         <tr>
                             <th>Name</th>
