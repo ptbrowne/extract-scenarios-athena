@@ -5,6 +5,7 @@ from glob import glob
 import os.path as osp
 from notebook import Notebook
 from jinja2 import Template
+from termcolor import colored
 
 n = Notebook()
 
@@ -53,7 +54,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('data_dir')
     parser.add_argument('--limit-scenarios', default=20)
-    parser.add_argument('--force', action='store_true', default=False)
+    parser.add_argument('--overwrite', action='store_true', default=False)
+    parser.add_argument('--merge', action='store_true', default=False)
     args = parser.parse_args()
 
     data_dir = args.data_dir
@@ -66,9 +68,10 @@ if __name__ == '__main__':
         exit('No refs files in {0}. Your refs files should end with "refs.csv". example: "test_LCF_2refs.csv"')
 
     filebase = osp.basename(data_dir if not data_dir.endswith('/') else data_dir[:-1])
-    notebook_filename = '{0}.ipynb'.format(filebase)
+    nb_filename = '{0}.ipynb'.format(filebase)
     title = filebase.split('.')[0].replace('_', ' ')
     print 'Title: {0}'.format(title)
+    print
 
     with n.subsection('1_head'):
         add_preambule()
@@ -83,10 +86,10 @@ if __name__ == '__main__':
         n_refs = len(scenarios[0].refs)
 
         print 'Reference file: {0}'.format(ref_file)
-        print 'Total number of scenarios: {0}'.format(len(scenarios))
-        print 'Total number of scenarios with images: {0}'.format(len(scenarios_with_images))
-        print 'Number of references: {0}'.format(n_refs)
-
+        print '- Number of references: {0}'.format(n_refs)
+        print '- Total number of scenarios: {0}'.format(len(scenarios))
+        print '- Total number of scenarios with images: {0}'.format(len(scenarios_with_images))
+        print
         # Summary
         with n.subsection('2_{n_refs}refs'.format(n_refs=n_refs)):
 
@@ -140,18 +143,20 @@ if __name__ == '__main__':
                     n.add_markdown_cell("Notes : ", id='2_notes')
 
 
-    def write(n):
-        n.write(notebook_filename)
-        print '{0} created ! ✨'.format(notebook_filename)
+    def write(n, verb):
+        n.write(nb_filename)
+        print colored('{0} {1} ! ✨'.format(nb_filename, verb), 'green')
 
-    if osp.exists(notebook_filename) and not args.force:
-        if raw_input('Do you want to merge notebook (y for yes) ? ') == 'y':
-            print "{0} already exists, merging...".format(notebook_filename)
-            n1 = Notebook.open(notebook_filename)
+    already_exists = osp.exists(nb_filename)
+    if already_exists:
+        if args.overwrite:
+            write(n, 'overwritten')
+        elif args.merge:
+            n1 = Notebook.open(nb_filename)
             n1.merge(n)
-            write(n1)
+            write(n1, 'merged')
         else:
-            print 'Aborted..'
+            print colored('{0} already exists. Notebook creation aborted. Use --merge to merge with existing notebook or --overwrite to overwrite it.'.format(nb_filename), 'red')
     else:
-        write(n)
+        write(n, 'created')
 
