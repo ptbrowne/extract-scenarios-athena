@@ -1,3 +1,70 @@
+Installation
+============
+
+```bash
+pip install pandas numpy matplotlib jupyter
+
+# Install extensions
+pip install jupyter_contrib_nbextensions
+pip install jupyter_nbextensions_configurator
+jupyter contrib nbextension install --user
+
+# Enable some extensions
+jupyter nbextension enable toc2/main
+jupyter nbextension enable printview/main
+jupyter nbextension enable init_cell/main
+jupyter nbextension enable hide_input/main
+```
+
+Génération de notebooks
+=======================
+
+Il est possible de génerer un notebook permettant de comparer les scénarios.
+
+```
+$ tree data/Colmar_substrat
+data/Colmar_substrat/
+├── Colmar_substrat_LCF_2refs_sc1_k.png
+├── Colmar_substrat_LCF_2refs_sc1_r.png
+├── Colmar_substrat_LCF_3refs_sc1_k.png
+├── Colmar_substrat_LCF_3refs_sc1_r.png
+├── Colmar_substrat_LCF_3refs_sc2_k.png
+├── Colmar_substrat_LCF_3refs_sc2_r.png
+├── Colmar_substrat_LCF_3refs_sc3_k.png
+├── Colmar_substrat_LCF_3refs_sc3_r.png
+├── Colmar_substrat_LCF_3refs_sc4_k.png
+├── Colmar_substrat_LCF_3refs_sc4_r.png
+├── Colmar_substrat_LCF_3refs_sc5_k.png
+├── Colmar_substrat_LCF_3refs_sc5_r.png
+├── Colmar_substrat_LCF_3refs_sc6_k.png
+├── Colmar_substrat_LCF_3refs_sc6_r.png
+├── Zn_Colmar_subs_LCF_2refs.csv
+├── Zn_Colmar_subs_LCF_2refs.xls
+├── Zn_Colmar_subs_LCF_2refs_sc1.lcf
+├── Zn_Colmar_subs_LCF_3refs.csv
+├── Zn_Colmar_subs_LCF_3refs.xls
+├── Zn_Colmar_subs_LCF_3refs_sc1.lcf
+├── Zn_Colmar_subs_LCF_3refs_sc2.lcf
+├── Zn_Colmar_subs_LCF_3refs_sc3.lcf
+└── Zn_Colmar_subs_LCF_3refs_sc4.lcf
+
+0 directories, 23 files
+
+$ python data/Colmar_substrat
+Title: Colmar substrat
+Reference file: data/Colmar_substrat/Zn_Colmar_subs_LCF_2refs.csv
+Total number of scenarios: 20
+Total number of scenarios with images: 1
+Number of references: 2
+Reference file: data/Colmar_substrat/Zn_Colmar_subs_LCF_3refs.csv
+Total number of scenarios: 20
+Total number of scenarios with images: 6
+Number of references: 3
+Colmar_substrat.ipynb created ! ✨
+
+$ jupyter-notebook Colmar_substrat.ipynb
+```
+
 Extraction de scénarios
 =======================
 
