@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
-from IPython.display import display, Image, HTML
-from parse import parse_scenarios_from_file
-from glob import glob
 import os.path as osp
-from notebook import Notebook
+
+from glob import glob
 from jinja2 import Template
 from termcolor import colored
+from IPython.display import display, Image, HTML
+
+from parse import parse_scenarios_from_file
+from notebook import Notebook
+from subprocess import call
 
 n = Notebook()
 
@@ -145,6 +148,7 @@ if __name__ == '__main__':
 
     def write(n, verb):
         n.write(nb_filename)
+        call(['jupyter', 'trust', nb_filename]) # sign the notebook
         print colored('{0} {1} ! ✨'.format(nb_filename, verb), 'green')
 
     already_exists = osp.exists(nb_filename)
