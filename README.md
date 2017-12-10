@@ -2,7 +2,7 @@ Installation
 ============
 
 ```bash
-pip install pandas numpy matplotlib jupyter
+pip install -r requirements.txt
 
 # Install extensions
 pip install jupyter_contrib_nbextensions

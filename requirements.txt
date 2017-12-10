@@ -1,0 +1,7 @@
+jinja
+term_color
+jupyter
+numpy
+pandas
+matplotlib
+jupyter_contrib_nbextensions
