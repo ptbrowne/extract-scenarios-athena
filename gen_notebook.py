@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 import os.path as osp
+import argparse
+import sys
+import pandas as pd
 
 from glob import glob
 from jinja2 import Template
 from termcolor import colored
 from IPython.display import display, Image, HTML
 
-from parse import parse_scenarios_from_file
+from parse import parse_stats_from_file, parse_fits_from_file, summary_from_data, compute_r_from_fits, count_refs_from_stats
 from notebook import Notebook
 from subprocess import call
-
-n = Notebook()
 
 def render(template, **data):
     return Template(template).render(data)
@@ -29,11 +30,11 @@ def get_image(path, scenario_id, n_refs, k_or_r):
         k_or_r=k_or_r
     ))[0]
 
-def add_preambule():
+def add_preambule(notebook):
     # Preliminary
-    n.add_code_cell("""
+    notebook.add_code_cell("""
         from IPython.display import display, HTML, Image, Markdown
-        from parse import parse_scenarios_from_file
+        from parse import parse_stats_from_file, parse_fits_from_file, summary_from_data
         from base64 import b64encode
 
         def display_image_side_by_side(*imgs):
@@ -41,8 +42,8 @@ def add_preambule():
             display(HTML('<div style="display: flex; align-items: flex-end">%s</div>' % ''.join(map(im_html, imgs))))
     """, id='1_preambule')
 
-def add_title(title):
-    n.add_code_cell(render("""
+def add_title(notebook, title):
+    notebook.add_code_cell(render("""
         display(HTML("<h1>{{ title }}</h1>"))
     """, title=title), id='4_title')
 
@@ -50,9 +51,29 @@ def exit(msg):
     sys.stderr.write('{0}\n'.format(msg))
     sys.exit(1)
 
-if __name__ == '__main__':
-    import argparse
-    import sys
+
+def get_stats_files(data_dir):
+    files = glob('{0}/*Stats*.dat'.format(data_dir))
+    if len(files) == 0:
+        raise ValueError('No refs files in {0}. Your refs files should end with "Stats<number>.dat". example: "S400_T30_C_2refs_LinearStats5.dat"'.format(data_dir))
+    return sorted(files)
+
+
+def get_fit_files(data_dir):
+    files = glob('{0}/*Fits*.dat'.format(data_dir))
+    if len(files) == 0:
+        raise ValueError('No refs files in {0}. Your refs files should end with "Fits<number>.dat". example: "S400_T30_C_2refs_LinearFits5.dat"'.format(data_dir))
+    return sorted(files)
+
+
+def get_names_from_data_dir(data_dir):
+    filebase = osp.basename(data_dir if not data_dir.endswith('/') else data_dir[:-1])
+    nb_filename = '{0}.ipynb'.format(filebase)
+    title = filebase.split('.')[0].replace('_', ' ')
+    return nb_filename, title
+
+
+def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('data_dir')
@@ -64,85 +85,75 @@ if __name__ == '__main__':
     data_dir = args.data_dir
 
     if not osp.exists(data_dir):
-        exit('The directory {0} does not exist'.format(data_dir))
+        raise ValueError('The directory {0} does not exist'.format(data_dir))
 
-    ref_files = glob('{0}/*refs.csv'.format(data_dir))
-    if len(ref_files) == 0:
-        exit('No refs files in {0}. Your refs files should end with "refs.csv". example: "test_LCF_2refs.csv"')
+    stat_files = get_stats_files(data_dir)
+    fit_files = get_fit_files(data_dir)
 
-    filebase = osp.basename(data_dir if not data_dir.endswith('/') else data_dir[:-1])
-    nb_filename = '{0}.ipynb'.format(filebase)
-    title = filebase.split('.')[0].replace('_', ' ')
+    nb_filename, title = get_names_from_data_dir(data_dir)
+
     print 'Title: {0}'.format(title)
     print
 
+    n = Notebook()
+
+    # Main title
     with n.subsection('1_head'):
-        add_preambule()
-        add_title(title=title)
+        add_preambule(n)
+        add_title(n, title)
 
-        # Main title
 
-    for ref_file in ref_files:
-        scenarios = parse_scenarios_from_file(ref_file, limit=args.limit_scenarios)
-        scenarios_with_images = filter(lambda scenario: has_images(data_dir, scenario), scenarios)
+    for i, stat_file in enumerate(sorted(stat_files)):
+        fit_file = fit_files[i]
+        stats = parse_stats_from_file(stat_file, limit=args.limit_scenarios)
+        fits = parse_fits_from_file(fit_file)
+        summary = summary_from_data(stats, fits)
 
-        n_refs = len(scenarios[0].refs)
+        prefix = '_'.join(stat_file.split('_')[:-1]).split('/')[-1]
+        images = glob('{0}/{1}*.png'.format(data_dir, prefix))
 
-        print 'Reference file: {0}'.format(ref_file)
+        n_refs = len(summary.columns) - len(['fit', 'chi2', 'chi2_reduced', 'r2'])
+
+        print 'Stats file: {0}'.format(stat_file)
+        print 'Fits file: {0}'.format(fit_file)
         print '- Number of references: {0}'.format(n_refs)
-        print '- Total number of scenarios: {0}'.format(len(scenarios))
-        print '- Total number of scenarios with images: {0}'.format(len(scenarios_with_images))
+        print '- Total number of scenarios: {0}'.format(stats.shape[0])
         print
+
         # Summary
         with n.subsection('2_{n_refs}refs'.format(n_refs=n_refs)):
-
-            heading = osp.basename(ref_file).split('_')[-1].split('.')[0].replace('refs', ' references')
+            heading = osp.basename(stat_file).split('_')[-2].split('.')[0].replace('refs', ' references')
             n.add_code_cell(render("""
-                scenarios = {scenario.id: scenario for scenario in parse_scenarios_from_file('{{ ref_file }}', limit={{limit_scenarios}})}
-                display(HTML(\"\"\"
-                    <h2 id="{{ ref_file }}">{{ heading }}</h2>
-                    <table id="">
-                        <tr>
-                            <th>Name</th>
-                            {% for n in range(n_refs) %}
-                                <th>Ref{{n + 1}}</th>
-                            {% endfor %}
-                            <th>R-factor</th>
-                            <th>Chinu</th>
-                            <th>R-factor Delta</th>
-                        </tr>
-                        {% for scenario in scenarios %}
-                        <tr>
-                            <td><a href="#{{n_refs}}refs_sc{{scenario.id}}">{{scenario.id}}</a></td>
-                            {% for n in range(n_refs) %}
-                            <td>{{ scenario.refs[n] }}</td>
-                            {% endfor %}
-                            <td>{{ '%.5f' % scenario.rfactor }}</td>
-                            <td>{{ '%.2f' % scenario.chinu }}</td>
-                            <td>{{ '%.2f' % scenario.rfactor_delta }}</td>
-                        </tr>
-                        {% endfor %}
-                    </table>
-                    \"\"\"))
-                """, scenarios=scenarios, ref_file=ref_file, n_refs=n_refs, heading=heading, limit_scenarios=args.limit_scenarios),
-                id='1_summary')
+                stats = parse_stats_from_file('{{ stat_file }}')
+                fits = parse_fits_from_file('{{ fit_file }}')
+                summary = summary_from_data(stats, fits)
+                formatters = {
+                    "fit": lambda v: "<a href='#refs_{{n_refs}}_sc_{0:.0f}'>{0}</a>".format(v)
+                }
+                display(HTML("<h2>{{ heading }}</h2>"))
+                display(HTML(summary.to_html(formatters=formatters, escape=False)))
+                """,
+                stat_file=stat_file,
+                fit_file=fit_file,
+                start_ref_column=7,
+                heading=heading,
+                limit_scenarios=args.limit_scenarios,
+                n_refs=n_refs
+            ), id='1_summary')
 
-            # Each scenario
-            for scenario in scenarios_with_images:
-                image_k = get_image(data_dir, scenario.id, len(scenario.refs), 'k')
-                image_r = get_image(data_dir, scenario.id, len(scenario.refs), 'r')
-                data = dict(scenario=scenario, n_refs=n_refs, image_k = image_k, image_r=image_r)
-                with n.subsection('2_sc{scenario.id}'.format(scenario=scenario)):
+            for image in sorted(images):
+                fit_number = image.split('_')[-1].split('.png')[0].replace('#0', '')
+                with n.subsection('2_sc{fit_number}'.format(fit_number=fit_number)):
                     n.add_code_cell("""
-                        display(HTML('<h3 id="{n_refs}refs_sc{scenario.id}">scenario {scenario.id}</h3>') )
-                        scenario = scenarios[{scenario.id}]
-                        for ref in scenario.refs:
-                            print ref
-                        print 'R=', scenario.rfactor
-                        display_image_side_by_side(
-                            Image('{image_k}'),
-                            Image('{image_r}'))
-                    """.format(**data), id='1_code')
+                        summary_row_html = summary[summary['fit'] == float({fit_number})].to_html()
+                        display(HTML('<h3 id="refs_{n_refs}_sc_{fit_number}">scenario {fit_number}</h3>') )
+                        display(HTML(summary_row_html))
+                        display_image_side_by_side(Image('{image}'))
+                    """.format(
+                        fit_number=fit_number,
+                        n_refs=n_refs,
+                        image=image,
+                    ), id='1_code')
                     n.add_markdown_cell("Notes : ", id='2_notes')
 
 
@@ -164,3 +175,4 @@ if __name__ == '__main__':
     else:
         write(n, 'created')
 
+main()

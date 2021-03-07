@@ -1,5 +1,5 @@
+termcolor
 jinja2
-term_color
 jupyter
 numpy
 pandas

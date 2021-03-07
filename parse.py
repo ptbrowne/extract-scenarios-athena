@@ -1,60 +1,90 @@
-# uncompyle6 version 2.14.1
-# Python bytecode 2.7 (62211)
-# Decompiled from: Python 2.7.10 (default, Feb  7 2017, 00:08:15) 
-# [GCC 4.2.1 Compatible Apple LLVM 8.0.0 (clang-800.0.34)]
-# Embedded file name: /Users/pbrowne/code/these-maureen/extract-scenarios/parse.py
-# Compiled at: 2017-11-28 23:57:32
-import csv
-from scenario import Scenario, Ref
-RFACTOR = 0
-CHINU = 1
+import re
+import pandas as pd
 
-def parse_cell(cell):
-    """Transformer la valeur d'une cellule en nombre. 0 s'il n'y a rien"""
-    try:
-        if cell:
-            return float(cell)
-        return 0
-    except Exception:
-        return cell
-
-
-def parse_row(line):
-    """Transformer les valeurs d'une ligne en nombres"""
-    return map(parse_cell, line)
-
-
-def parse_scenario(line, headers, subheaders, ref_line):
-    """Transformer une ligne en un scenario"""
-    chinu = line[CHINU]
-    rfactor = line[RFACTOR]
-    rfactor_ref = ref_line[RFACTOR]
-    rfactor_delta = (rfactor - rfactor_ref) / rfactor_ref * 100
-    refs = [ Ref(headers[i], cell) for i, cell in enumerate(line) if cell and subheaders[i] == 'weight' ]
-    refs = sorted(refs, key=lambda ref: -ref.weight)
-    return (
-     refs, rfactor, chinu, rfactor_delta)
-
-
-def parse_scenarios_from_file(filename, limit=10):
+def parse_stats_from_file(filename, limit=10):
     """Extraire d'un CSV les scenarios"""
-    with open(filename, 'rb') as (csvfile):
-        reader = csv.reader(csvfile)
-        reader = list(reader)
-    headers = reader[0]
-    subheaders = reader[1]
-    results = reader[2:]
-    results = map(parse_row, results)
-    scenarios = []
-    ref_line = results[0]
-    for i, line in enumerate(results[:limit]):
-        line = map(lambda x: float(x) if x else 0, line)
-        results[i] = line
-        chinu = line[CHINU]
-        s = parse_scenario(line, headers, subheaders, ref_line)
-        scenario_id = i + 1
-        scenario = Scenario(*([scenario_id] + list(s)))
-        scenarios.append(scenario)
+    with open(filename, 'rb') as csvfile:
+        for line in csvfile:
+            if line.startswith('#   fit'):
+                # Need to do a bit of a hack since the first column is named
+                # "fit #" and the space make the splitter thinks its two
+                # different columns
+                column_names = re.split(r'\s+', line.strip())[1:]
+                column_names = ['fit'] + column_names[2:]
 
-    return scenarios
-# okay decompiling parse.pyc
+    with open(filename, 'rb') as csvfile:
+        df = pd.read_csv(
+            csvfile,
+            comment='#',
+            sep="\\s+",
+            names=column_names
+        )
+
+    return df
+
+
+def format_pair(pair):
+    return '%.2f x %s' % (pair[0], pair[1].replace('.xmu', '').replace('.nor', ''))
+
+
+def count_refs_from_stats(stats):
+    all_refs = stats.columns[7:-1]
+    return len(all_refs)
+
+
+def summary_from_data(stats, fits):
+    all_refs = stats.columns[7:-1]
+
+    refs_table = [
+        sorted([
+            (row[ref], ref) for ref in all_refs if row[ref] > 0
+        ])[::-1] 
+        for index, row in stats.iterrows()
+    ]
+
+    df = pd.DataFrame(stats[['fit', 'chi2', 'chi2_reduced']])
+
+    nb_refs = len(refs_table[0])
+    for n in range(len(refs_table[0])): 
+        df['ref #%s' % (n + 1)] = [format_pair(pairs[n]) for pairs in refs_table]
+
+
+    r_stats = compute_r_from_fits(fits)
+    df['r2'] = [
+        r_stats['r2_fit_0%i' % i] for i in range(stats.shape[0])
+    ]
+
+    return df
+
+# ---------
+
+def parse_fits_from_file(filename, limit=10):
+    """Extraire d'un CSV les scenarios"""
+    with open(filename, 'rb') as csvfile:
+        for line in csvfile:
+            if line.startswith('#   energy'):
+                column_names = re.split(r'\s+', line.strip())[1:]
+    with open(filename, 'rb') as csvfile:
+        df = pd.read_csv(
+            csvfile,
+            comment='#',
+            sep="\\s+",
+            index_col=False,
+            names=column_names
+        )
+
+    fit_columns = [col for col in df.columns if col.startswith('fit_')]
+
+    for col in fit_columns:
+        df['error_%s' % col] = ((df[col] - df['data']) ** 2)
+
+    return df
+
+
+def compute_r_from_fits(df):
+    fit_columns = [col for col in df.columns if col.startswith('fit_')]
+    sum_data_squared = (df['data'] ** 2).sum()
+    res = {}
+    for col in fit_columns:
+        res['r2_%s' % col] = df['error_%s' % col].sum() / sum_data_squared
+    return res

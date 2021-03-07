@@ -50,7 +50,7 @@ data/Colmar_substrat/
 
 0 directories, 23 files
 
-$ python data/Colmar_substrat
+$ python gen_notebook.py data/Colmar_substrat
 Title: Colmar substrat
 Reference file: data/Colmar_substrat/Zn_Colmar_subs_LCF_2refs.csv
 Total number of scenarios: 20
@@ -62,7 +62,7 @@ Total number of scenarios with images: 6
 Number of references: 3
 Colmar_substrat.ipynb created ! ✨
 
-$ jupyter-notebook Colmar_substrat.ipynb
+$ jupyter notebook Colmar_substrat.ipynb
 ```
 
 Extraction de scénarios
