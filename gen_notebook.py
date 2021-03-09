@@ -37,6 +37,8 @@ def add_preambule(notebook):
         from parse import parse_stats_from_file, parse_fits_from_file, summary_from_data
         from base64 import b64encode
 
+        display(HTML('<style>@media print { .code_cell .input, .output_area > .prompt { display: none } }</style>'))
+
         def display_image_side_by_side(*imgs):
             im_html = lambda im: '<img style="display:inline-block; width:50%%" src="data:image/png;base64,%s" />' % b64encode(im.data)
             display(HTML('<div style="display: flex; align-items: flex-end">%s</div>' % ''.join(map(im_html, imgs))))
