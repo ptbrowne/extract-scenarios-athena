@@ -94,8 +94,8 @@ def main():
 
     nb_filename, title = get_names_from_data_dir(data_dir)
 
-    print 'Title: {0}'.format(title)
-    print
+    print('Title: {0}'.format(title))
+    print()
 
     n = Notebook()
 
@@ -116,11 +116,11 @@ def main():
 
         n_refs = len(summary.columns) - len(['fit', 'chi2', 'chi2_reduced', 'r2'])
 
-        print 'Stats file: {0}'.format(stat_file)
-        print 'Fits file: {0}'.format(fit_file)
-        print '- Number of references: {0}'.format(n_refs)
-        print '- Total number of scenarios: {0}'.format(stats.shape[0])
-        print
+        print('Stats file: {0}'.format(stat_file))
+        print('Fits file: {0}'.format(fit_file))
+        print('- Number of references: {0}'.format(n_refs))
+        print('- Total number of scenarios: {0}'.format(stats.shape[0]))
+        print()
 
         # Summary
         with n.subsection('2_{n_refs}refs'.format(n_refs=n_refs)):
@@ -162,7 +162,7 @@ def main():
     def write(n, verb):
         n.write(nb_filename)
         call(['jupyter', 'trust', nb_filename]) # sign the notebook
-        print colored('{0} {1} ! ✨'.format(nb_filename, verb), 'green')
+        print(colored('{0} {1} ! ✨'.format(nb_filename, verb), 'green'))
 
     already_exists = osp.exists(nb_filename)
     if already_exists:
@@ -173,7 +173,7 @@ def main():
             n1.merge(n)
             write(n1, 'merged')
         else:
-            print colored('{0} already exists. Notebook creation aborted. Use --merge to merge with existing notebook or --overwrite to overwrite it.'.format(nb_filename), 'red')
+            print(colored('{0} already exists. Notebook creation aborted. Use --merge to merge with existing notebook or --overwrite to overwrite it.'.format(nb_filename), 'red'))
     else:
         write(n, 'created')
 

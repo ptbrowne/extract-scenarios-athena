@@ -25,7 +25,7 @@ class Scenario(_Scenario):
         """
         return '\t'.join(map(str, flatten([
             'Scenario %s' % self.id,
-            map(str, self.refs),
+            list(map(str, self.refs)),
             self.rfactor,
             self.chinu,
             self.rfactor_delta
@@ -54,7 +54,7 @@ class Scenario(_Scenario):
     @staticmethod
     def parse_row(line):
         """Transformer les valeurs d'une ligne en nombres"""
-        return map(Scenario.parse_cell, line)
+        return list(map(Scenario.parse_cell, line))
 
     @staticmethod
     def parse_scenario(line, headers, subheaders, ref_line):
@@ -76,11 +76,11 @@ class Scenario(_Scenario):
         headers = reader[0]
         subheaders = reader[1]
         results = reader[2:]
-        results = map(Scenario.parse_row, results)
+        results = list(map(Scenario.parse_row, results))
         scenarios = []
         ref_line = results[0]
         for i, line in enumerate(results[:limit]):
-            line = map(lambda x: float(x) if x else 0, line)
+            line = [float(x) if x else 0 for x in line]
             results[i] = line
             chinu = line[CHINU]
             s = Scenario.parse_scenario(line, headers, subheaders, ref_line)
