@@ -73,8 +73,8 @@ if __name__ == '__main__':
     filebase = osp.basename(data_dir if not data_dir.endswith('/') else data_dir[:-1])
     nb_filename = '{0}.ipynb'.format(filebase)
     title = filebase.split('.')[0].replace('_', ' ')
-    print 'Title: {0}'.format(title)
-    print
+    print('Title: {0}'.format(title))
+    print()
 
     with n.subsection('1_head'):
         add_preambule()
@@ -84,15 +84,15 @@ if __name__ == '__main__':
 
     for ref_file in ref_files:
         scenarios = parse_scenarios_from_file(ref_file, limit=args.limit_scenarios)
-        scenarios_with_images = filter(lambda scenario: has_images(data_dir, scenario), scenarios)
+        scenarios_with_images = [scenario for scenario in scenarios if has_images(data_dir, scenario)]
 
         n_refs = len(scenarios[0].refs)
 
-        print 'Reference file: {0}'.format(ref_file)
-        print '- Number of references: {0}'.format(n_refs)
-        print '- Total number of scenarios: {0}'.format(len(scenarios))
-        print '- Total number of scenarios with images: {0}'.format(len(scenarios_with_images))
-        print
+        print('Reference file: {0}'.format(ref_file))
+        print('- Number of references: {0}'.format(n_refs))
+        print('- Total number of scenarios: {0}'.format(len(scenarios)))
+        print('- Total number of scenarios with images: {0}'.format(len(scenarios_with_images)))
+        print()
         # Summary
         with n.subsection('2_{n_refs}refs'.format(n_refs=n_refs)):
 
@@ -149,7 +149,7 @@ if __name__ == '__main__':
     def write(n, verb):
         n.write(nb_filename)
         call(['jupyter', 'trust', nb_filename]) # sign the notebook
-        print colored('{0} {1} ! ✨'.format(nb_filename, verb), 'green')
+        print(colored('{0} {1} ! ✨'.format(nb_filename, verb), 'green'))
 
     already_exists = osp.exists(nb_filename)
     if already_exists:
@@ -160,7 +160,7 @@ if __name__ == '__main__':
             n1.merge(n)
             write(n1, 'merged')
         else:
-            print colored('{0} already exists. Notebook creation aborted. Use --merge to merge with existing notebook or --overwrite to overwrite it.'.format(nb_filename), 'red')
+            print(colored('{0} already exists. Notebook creation aborted. Use --merge to merge with existing notebook or --overwrite to overwrite it.'.format(nb_filename), 'red'))
     else:
         write(n, 'created')
 

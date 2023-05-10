@@ -43,7 +43,7 @@ class Notebook(dict):
     })
 
   def add_cell(self, source, type, id):
-    splitted = map(lambda x: '%s\n' % x, source.split('\n'))
+    splitted = ['%s\n' % x for x in source.split('\n')]
     if splitted[0] == "\n": splitted = splitted[1:]
     if splitted[-1] == "\n": splitted = splitted[:-1]
     cell = {

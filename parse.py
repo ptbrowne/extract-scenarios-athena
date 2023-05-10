@@ -21,7 +21,7 @@ def parse_cell(cell):
 
 def parse_row(line):
     """Transformer les valeurs d'une ligne en nombres"""
-    return map(parse_cell, line)
+    return list(map(parse_cell, line))
 
 
 def parse_scenario(line, headers, subheaders, ref_line):
@@ -44,11 +44,11 @@ def parse_scenarios_from_file(filename, limit=10):
     headers = reader[0]
     subheaders = reader[1]
     results = reader[2:]
-    results = map(parse_row, results)
+    results = list(map(parse_row, results))
     scenarios = []
     ref_line = results[0]
     for i, line in enumerate(results[:limit]):
-        line = map(lambda x: float(x) if x else 0, line)
+        line = [float(x) if x else 0 for x in line]
         results[i] = line
         chinu = line[CHINU]
         s = parse_scenario(line, headers, subheaders, ref_line)

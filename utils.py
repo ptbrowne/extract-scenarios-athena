@@ -18,11 +18,11 @@ def deindent(splitted_source):
       n_space += 1
     else:
       break
-  return map(lambda x: x[n_space:], splitted_source)
+  return [x[n_space:] for x in splitted_source]
 
 
 def safe_next(iterator):
   try:
-    return iterator.next()
+    return next(iterator)
   except StopIteration:
     return None
